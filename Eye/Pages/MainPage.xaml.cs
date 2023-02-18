@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Eye.DataBase;
 
 namespace Eye.Pages
 {
@@ -20,9 +21,42 @@ namespace Eye.Pages
     /// </summary>
     public partial class MainPage : Page
     {
+        public List<Agent> Agents { get; set; }
+        public List<Agent> FilteredAgents { get; set; }
+        public List<AgentType> AgentTypes { get; set; }
         public MainPage()
         {
             InitializeComponent();
+        }
+
+        private void btnEditPriority_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnAddAgent_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new AgentPage());
+        }
+
+        private void lvAgents_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void lvAgents_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        private void cbAgentTypes_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void cbSorting_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
     }
 }
