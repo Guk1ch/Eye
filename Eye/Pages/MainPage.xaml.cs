@@ -24,6 +24,7 @@ namespace Eye.Pages
         public List<Agent> Agents { get; set; }
         public List<Agent> FilteredAgents { get; set; }
         public List<AgentType> AgentTypes { get; set; }
+        public Dictionary<string, int> Sortings { get; set; }
         private int _page = 0;
         private int _countOnPage = 10;
         public MainPage()
@@ -31,7 +32,21 @@ namespace Eye.Pages
             InitializeComponent();
             DataContext = this;
             Agents = BDConnection.connection.Agent.ToList();
-            DateStartSorter.SelectedIndex = 0;
+            FilteredAgents = Agents.ToList();
+            AgentTypes = BDConnection.connection.AgentType.ToList();
+            AgentTypes.Insert(0, new AgentType() { Title = "Все типы" });
+
+            Sortings = new Dictionary<string, int>
+            {
+                { "Без сортировки", 1},
+                { "Наименование по возрастанию", 2},
+                { "Наименование по убыванию", 3 },
+                { "Приоритет по возрастанию", 4 },
+                { "Приоритет по убыванию", 5 },
+                { "Размер скидки по возрастанию", 6},
+                { "Размер скидки по убыванию", 7 }
+            };
+
 
         }
 
@@ -66,31 +81,54 @@ namespace Eye.Pages
         }
         public void Filter(bool filtersChanged)
         {
-            if (filtersChanged)
-                _page = 0;
-
+            var searchingText = tbSearch.Text.ToLower();
+            var sorting = Sortings[cbSorting.SelectedItem as string];
             var agentType = cbAgentTypes.SelectedItem as AgentType;
-            var sort = cbSorting.SelectedItem as string;
-            var searchText = tbSearch.Text.ToLower();
 
-            DataAccess.RefreshList += DataAccess_RefreshList;
+            if (sorting == null || agentType == null)
+                return;
 
-            if (agentType != null && sort != null)
+            FilteredAgents = Agents.FindAll(agent => agent.Title.ToLower().Contains(searchingText));
+
+            if (agentType.ID != 0)
+                FilteredAgents = FilteredAgents.FindAll(agent => agent.AgentType == agentType);
+
+            switch (sorting)
             {
-                FilteredAgents = agentType.Agent.Where(x =>
-                    x.Title.ToLower().Contains(searchText) ||
-                    x.Phone.ToLower().Contains(searchText) ||
-                    x.Email.ToLower().Contains(searchText)).ToList();
+                case 1:
+                    FilteredAgents = FilteredAgents.OrderBy(agent => agent.ID).ToList();
+                    break;
 
+                case 2:
+                    FilteredAgents = FilteredAgents.OrderBy(agent => agent.Title).ToList();
+                    break;
 
-                FilteredAgents = FilteredAgents.OrderBy(Sortings[sort]).ToList();
-                if (sort.Contains("убыванию"))
-                    FilteredAgents.Reverse();
+                case 3:
+                    FilteredAgents = FilteredAgents.OrderByDescending(agent => agent.Title).ToList();
+                    break;
 
-                lvAgents.ItemsSource = FilteredAgents.Skip(_page * _countOnPage).Take(_countOnPage);
-                lvAgents.Items.Refresh();
-                SetPageNumbers();
+                case 4:
+                    FilteredAgents = FilteredAgents.OrderBy(agent => agent.Priority).ToList();
+                    break;
+
+                case 5:
+                    FilteredAgents = FilteredAgents.OrderByDescending(agent => agent.Priority).ToList();
+                    break;
+
+                case 6:
+                    FilteredAgents = FilteredAgents.OrderBy(agent => agent.Discount).ToList();
+                    break;
+
+                case 7:
+                    FilteredAgents = FilteredAgents.OrderByDescending(agent => agent.Discount).ToList();
+                    break;
+
+                default:
+                    break;
             }
+
+
+            lvAgents.ItemsSource = FilteredAgents;
         }
 
         private void OnButtonClick(object sender, RoutedEventArgs e)
@@ -116,6 +154,11 @@ namespace Eye.Pages
 
                 PagingPanel.Children.Add(button);
             }
+        }
+
+        private void tbSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Filter();
         }
     }
 }
